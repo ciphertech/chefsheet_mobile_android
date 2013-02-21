@@ -1,0 +1,1150 @@
+Ti.include('../shared/default.js');
+//Ti.include('autoenter.js');
+
+//alert("Implementation in progress");
+
+Ti.API.info('User_id: '+ Ti.App.Properties.getString('user_id'));
+Ti.API.info('Inventory_id: '+ Ti.App.Properties.getString('inventory_id'));
+Ti.API.info('Location_id: '+ win.location_id);
+Ti.App.addEventListener('switchTab', function (e) {
+	if(e.tab == 'inventory') {
+		win.close();
+		hideIndicator();
+	}
+});
+
+var location_id = win.location_id;
+//alert("location_id:"+location_id);
+var oCnt = 0;
+var cCnt = 0;
+
+var dataComplete = [];
+var data = [];
+var invComplete = [];
+var inv = [];
+
+
+//31stbgFrame(12,8,12,50);
+bgFrame(0,0,0,0);
+var cancel =  Titanium.UI.createButton({
+	title:'Cancel',
+	borderRadius : 10,
+	color:'#FFFFFF',
+	backgroundGradient : {
+		type : 'linear',
+		colors : ['#698aaa', '#1C4E7E', '#173f6b'],
+		startPoint : {
+			x : 0,
+			y : 0
+			},
+		endPoint : {
+			x : 0,
+			y : 40
+			},
+		backFillStart : false
+	},
+	borderWidth : 1,
+	borderColor : '#112f55'
+	//style:Titanium.UI.iPhone.SystemButtonStyle.BORDERED
+});
+
+var flowLbl = Ti.UI.createLabel({
+	text: 'Multi-Count',
+	textAlign:'left',
+	left:5,
+	bottom:19,
+	font:{fontWeight:'bold',fontSize:12},
+	color:'#000000'
+});
+
+// autoflow switch
+var tf = Titanium.UI.create2DMatrix().scale(0.75);
+var flowSwitch = Titanium.UI.createSwitch({
+	style:Titanium.UI.Android.SWITCH_STYLE_TOGGLEBUTTON,
+	bottom:3,
+	left:70,
+	value:true,
+	transform:tf  
+});
+
+var create =  Titanium.UI.createButton({
+	bottom:10,
+	right:15,
+	height:30,
+	width:120,
+	backgroundImage : '../../images/add_create.png',
+	backgroundColor : 'transparent'
+});
+
+//Bidyut Nath
+//Unnecessary In Android.
+/* 
+var spacer =  Titanium.UI.createButton({
+	systemButton:Titanium.UI.iPhone.SystemButton.FLEXIBLE_SPACE
+});
+*/
+// set toolbar
+var toolbar =  Titanium.UI.createView({
+	barColor: '#1C4E7E',	
+	//31 layout: 'horizontal',
+	bottom:0,
+	//31 items:[flowSwitch,flowLbl,spacer,create]
+});
+toolbar.add(flowSwitch);
+toolbar.add(flowLbl);
+//toolbar.add(spacer);
+toolbar.add(create);
+ win.add(toolbar);
+
+
+//bidyut nath
+// added to take user back to rooms
+var backToRoom = Ti.UI.createButton({
+  //text:'Outstanding Items',
+  title:'Rooms',
+  top:7,
+  left:20,
+  width:'100',
+  height:'30',
+  color:'#FFF',
+  borderRadius : 10,
+  backgroundGradient : {
+		type : 'linear',
+		colors : ['#698aaa', '#1C4E7E', '#173f6b'],
+		startPoint : {
+			x : 0,
+			y : 0
+		},
+		endPoint : {
+			x : 0,
+			y : 30
+		},
+		backFillStart : false
+  },
+  borderWidth : 1,
+  borderColor : '#112f55'
+});
+
+win.add(backToRoom);
+
+var outstandingLabel = Ti.UI.createLabel({
+  //text:'Outstanding Items',
+  text:'Un-Counted Items',
+  top:36,
+  left:20,
+  height:'auto',
+  color:'#357'
+});
+
+win.add(outstandingLabel);
+
+var cntBox1 = Ti.UI.createImageView({
+	top:28,
+	right:6,
+	width:62,
+	height:46,
+	backgroundImage:'../../images/count-box.png'
+});
+win.add(cntBox1);
+
+var cntBox2 = Ti.UI.createImageView({
+	bottom:177,
+	right:6,
+	width:62,
+	height:46,
+	backgroundImage:'../../images/count-box.png'
+});
+win.add(cntBox2);
+
+var tvOutBg = Ti.UI.createImageView({
+	top:66,
+	left:19,
+	right:19,
+	//height:130,
+	bottom:231,
+	borderRadius:8,
+	borderColor:'#cde',
+	backgroundColor:'transparent',
+	backgroundImage:'../../images/tableBG.png'
+});
+win.add(tvOutBg);
+
+var tvOutstanding = Ti.UI.createTableView({
+	top:66,
+	left:20,
+	right:20,
+	//height:128,
+	bottom:233,
+	rowHeight:32,
+	borderWidth:1,
+	borderRadius:8,
+	separatorColor:'#aaa',
+	backgroundColor:'transparent',
+	borderColor:'#999',
+	editable:true,
+	allowsSelectionDuringEditing:true,
+	deleteButtonTitle:"Remove"
+});
+
+var tvBg = Ti.UI.createImageView({
+	bottom:48,
+	left:19,
+	right:19,
+	height:138,
+	borderRadius:8,
+	borderColor:'#cde',
+	backgroundColor:'transparent',
+	backgroundImage:'../../images/tableBG.png'
+});
+win.add(tvBg);
+
+var tvCompleted = Ti.UI.createTableView({
+	bottom:50,
+	left:20,
+	right:20,
+	height:136,
+	borderWidth:1,
+	borderRadius:8,
+	rowHeight:32,
+	separatorColor:'#aaa',
+	backgroundColor:'transparent',
+	borderColor:'#999'
+});
+
+//get unit names
+
+units = _.groupBy(JSON.parse(Ti.App.Properties.getString('units')), function(e) { return e.id });
+categories = _.groupBy(JSON.parse(Ti.App.Properties.getString('categories')), function(e) { return e.id });
+
+
+
+function setData() {
+	invComplete = [];
+//win.add(spacer); //it was unnecessary in android. 
+	inv = [];
+	dataComplete = [];
+	data = [];
+	Ti.API.info('reloading...');
+	tvOutstanding.data = data;
+	tvCompleted.data = dataComplete;
+
+	oCnt = 0;
+  		cCnt = 0;
+  		//get all items including counted and un-counted
+		var items = JSON.parse(Ti.App.Properties.getString("currInventory"));
+		//Ti.API.info(items[location_id]);
+	    for(i=0;i<items[location_id].length;i++) {
+			var row = Titanium.UI.createTableViewRow({
+				productitem:'',
+				productunit:'',
+				productid:0,
+				unitname:'',
+				unit_id:0,
+				location_id:1,
+				inv_id:0
+			});
+			//get one by one product
+	      	var product = items[location_id][i];
+	      	//alert(product);
+	      	var unit = 'units';
+	      	unit_id = product.unit_id;
+	      	if(unit_id == null || unit_id == undefined || unit_id == 0) {
+	      		unit = 'No Unit';
+	      	} else {
+	      		//get all unit names
+	      		
+	      	//bidyut nath	
+	      	//commented due to error in default image scenario.
+	      	unit = units[unit_id][0].name;
+	      	}
+
+			//var ma = JSON.stringify(product.productlocation.product.inventoryitems);
+			//var mas = ma.match(/quantity/i);
+			//Ti.API.info("inventoryitems:" + ma);
+
+			// p_name will contain product name one by one
+			var p_name = product.product?product.product.name:product.name
+			var productitem = Titanium.UI.createLabel({
+				text:p_name,
+				font:{fontSize:(p_name.length>=26)?10:14,fontWeight:'bold'},
+				width:'70%',
+				textAlign:'left',
+				top:(p_name.length>=26)?2:6,//6,
+				left:36, //10,
+				color:'#000000',
+				height:'auto' //height:16
+			});
+			var thumb_id = product.product?product.product.category_id:0;
+			Ti.API.info('product.category_i='+product.category_id);			
+
+			var catThumb = Titanium.UI.createImageView({
+		    	//image:'../../images/categories/'+thumb_id+'.png',
+		    	//backgroundImage:prodImg(product,'medium'),
+		    	image:prodImg(product,'medium'),
+				left:3,
+				top:2,
+				width:28,
+				height:28,
+				borderRadius:6,
+				backgroundColor:'#BBBBC0',
+				preventDefaultImage:true,
+	    	});
+
+
+			 if (product.quantity != null) {
+			 	//alert(product.length);  //added for testing
+			 	//only product that is counted
+				var productunit = Ti.UI.createLabel({
+		          text: product.quantity  + ' ' +  unit,
+		          textAlign:'right',
+		          font:{fontWeight:'normal',fontSize:14},
+		          left:85,
+		          right:10,
+				  height:16,
+				  color:'#000000' //Bidyut 1st feb
+	            });
+	            invComplete.push(product);
+	            row.add(catThumb);
+	            row.add(productitem);
+	            row.add(productunit);
+	            row.productitem = productitem; //assign Labels to row properties
+				row.productunit = productunit;
+				row.productid = product.product_id;
+				row.catid = thumb_id;
+				row.unitname = unit;
+				row.unitid = unit_id;
+				row.location_id = location_id;
+				row.inv_id = product.id;
+				row.product_qty = product.quantity;
+				row.product_order = product.order;
+				row.product_par = product.par;
+				row.product_img = prodImg(product,'medium');
+
+			 	dataComplete.push(row);
+			 	cCnt++;
+			 } else {
+			 	inv.push(product);
+			 	row.add(catThumb);
+				row.add(productitem);
+				row.productitem = productitem; //assign Labels to row properties
+				row.productid = product.product_id;
+				row.catid = thumb_id;
+				row.unitname = unit;
+				row.unitid = unit_id;
+				row.location_id = location_id;
+				row.inv_id = product.id;
+				row.product_order = product.order;
+				row.product_par = product.par;
+				row.product_qty = null;
+				row.product_img = prodImg(product,'medium');
+			 	data.push(row);
+			 	oCnt++;
+			 }
+	    }
+		if (data.length == 0) {
+			for(i=0;i<4;i++) {
+				//data[i] = Ti.UI.createTableViewRow({height:32});
+				//tvOutstanding.data = data;
+			}
+		}
+		if (dataComplete.length == 0) {
+			 for(i=0;i<4;i++) {
+			 	//dataComplete[i] = Ti.UI.createTableViewRow({height:32});
+			 	//tvCompleted.data = data;
+			 }
+		}
+	    tvOutstanding.setData(data);
+		tvCompleted.setData(dataComplete);
+		//invCounts();
+		oCountLabel.text = oCnt;      // number of Un-Counted products
+		cCountLabel.text = cCnt;      //number of counted products
+		Titanium.App.fireEvent('hide_indicator');
+}
+
+tvOutstanding.addEventListener('click', function(e)
+{		
+	popWin(e,'edit');
+	
+});
+
+
+//bidyut nath
+//added to take user back to rooms page.
+backToRoom.addEventListener('click', function()
+{		
+	win.close();	
+});
+
+// add delete event listener
+tvOutstanding.addEventListener('delete',function(e)
+{
+	var s = e.section;
+	Ti.API.info('rows ' + s.rows + ' rowCount ' + s.rowCount + ' headerTitle ' + s.headerTitle + ' title ' + e.rowData.productitem.text);
+	Titanium.API.info("deleted - row="+e.row+", index="+e.index+", section="+e.section + ' inv_id ' + e.rowData.inv_id);
+
+	var destroy_id = e.rowData.inv_id;
+	var dialog = Ti.UI.createAlertDialog({
+	    cancel: 1,
+	    buttonNames: ['Yes', 'No!'],
+	    message: "Are you really sure you want to permanently remove \n"+e.rowData.productitem.text+"\n from your inventory?",
+	    title: 'Removing Product'
+	 });
+	 dialog.show(); 
+	 dialog.addEventListener('click',function(e) {
+
+	 	alert("Implementation in process");
+	 	/* 31st
+		if(e.index == 0){
+			// send destroy attribute
+			var xhr = Titanium.Network.createHTTPClient();
+			xhr.onerror = function(e) {
+				Ti.API.info("post error:" + e.error);
+				
+			};
+			// newer method - post directly to inventory
+			xhr.open("PUT", url('/api/v1/inventories/'+Ti.App.Properties.getString('inventory_id')+'.json'));
+			xhr.send({
+				"utf8":"✓",
+				"inventory[items_attributes][][id]":destroy_id,
+				"inventory[items_attributes][][_destroy]":1,
+				"commit":"Update Inventory"
+			});
+			Ti.App.fireEvent('refresh', { tab: 'inventories' });
+		} else {
+			setData();
+		}
+		*/
+	});
+});
+
+win.add(tvOutstanding);
+//setData();
+
+var completeLabel = Ti.UI.createLabel({
+  //text:'Completed Items',
+  text:'Counted Items',
+  bottom:194,
+  left:20,
+  height:'auto',
+  color:'#357'
+});
+win.add(completeLabel);
+
+
+
+//function invCounts() {
+var oCountLabel = Ti.UI.createLabel({
+  font:{fontSize:18,fontWeight:'bold'},
+  text:oCnt,
+  top:40,
+  right:20,
+  color:'#C52',
+  height:'auto',
+  width:'auto'
+});
+win.add(oCountLabel);
+
+var cCountLabel = Ti.UI.createLabel({
+  font:{fontSize:18,fontWeight:'bold'},
+  text:cCnt,
+  bottom:189,
+  right:20,
+  color:'#C52',
+  height:'auto',
+  width:'auto'
+});
+win.add(cCountLabel);
+//}
+
+
+tvCompleted.addEventListener('click', function(e) 
+{
+	popWin(e,'edit');
+});
+
+function popWin(e,popType){	
+	//Titanium.API.info('Clicked:'+e.index);
+	//Titanium.API.info('Clicked:'+e.row.productitem.text);
+	alert("Editing of item is in process");;
+	pHeader = e.row.productitem.text;
+	 	pUrl = '../inventory/enter.js';
+	 	pHeight = '49%';
+	 	pId = e.row.productid;
+		pUnit = e.row.unitname;
+		pQty = e.row.product_qty
+		pUid = e.row.unit_id;
+		pCatId = e.row.catid;
+		pOrder = e.row.product_order;
+		pPar = e.row.product_par;
+		invId = e.row.inv_id;
+		pImg = e.row.product_img;
+		
+	var win = Titanium.UI.createWindow({
+     
+    //	url:pUrl,
+		backgroundColor:'#eee',
+	//	borderWidth:bWidth,
+	//	borderColor:bColor,
+		top:10,
+		left:10,
+		right:10,
+		height:pHeight,
+		borderRadius:10,
+		opacity:0.95,
+	//	transform:t,
+		product_name:pHeader,
+		product_id: pId,
+		product_unit: pUnit,
+		product_unit_id: pUid,
+		product_par:pPar,
+		product_order:pOrder,
+		product_qty: pQty,
+		category_id:pCatId,
+		list_index: e.index,
+	//	inventory: inventory,
+		location_id: location_id,
+		product_img: pImg,
+		inv_id: invId
+	//	autoFlow:autoFlow
+	});
+		
+	//bidyut
+	//added to take user to back screen because keyboard was taking most of the screen.
+	cur_win=Titanium.UI.currentWindow;
+	cur_win.close();
+	
+	//Ti.App.fireEvent('popClose');
+	win.open();
+	
+	
+	
+var product_name = win.product_name;
+var inv_id = win.inv_id;
+var product_id = win.product_id;
+var product_unit = win.product_unit;
+var product_unit_id = win.product_unit_id;
+var category_id = win.category_id;
+var location_id = win.location_id;
+var product_qty = win.product_qty;
+var product_par = win.product_par;
+var product_order = win.product_order;
+var product_img = win.product_img;
+var autoFlow = win.autoFlow;
+
+
+
+Ti.API.info("inv_id:"+inv_id);
+/*
+if (Ti.App.Properties.getString('inventory_id') == null) {
+	alert("inventory_id is null");
+}
+if (location_id == null) {
+	alert("location_id is null");
+}
+*/
+//alert(product_id);
+var catBG = Titanium.UI.createImageView({
+    	//image:'../../images/categories/bg'+category_id+'.png',
+    	image:cropImage(product_img,340,340,320,240),
+		right:0,
+		top:0,
+		opacity:.4,
+		//width:240,
+		preventDefaultImage:true
+	});
+	win.add(catBG);
+
+
+var itemLabel = Ti.UI.createLabel({
+      text:product_name,
+      font:{fontSize:(product_name.length>=48)?14:18,fontWeight:'bold'},
+      top:10,
+      left:20,
+      color:'#000000',
+      height:'auto'
+    });
+win.add(itemLabel);
+
+var bg = Titanium.UI.createView({
+	top:60,
+	left:10,
+	right:10,
+	height:55,
+	backgroundColor: '#000',
+	opacity: 0.4,
+	borderRadius:8
+});
+win.add(bg);
+
+var qtyField = Ti.UI.createTextField({
+  hintText: product_qty !=null?product_qty:'Count',
+  height:35,
+  width: 100,
+  top:70,
+  left:60,
+  borderStyle:Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
+  keyboardType:Titanium.UI.KEYBOARD_DECIMAL_PAD,
+  returnKeyType:Titanium.UI.RETURNKEY_DEFAULT
+});
+win.add(qtyField);
+
+var parField = Ti.UI.createTextField({
+  hintText: product_par !=null?product_par:'Par',
+  height:35,
+  width: 70,
+  top:130,
+  left:60,
+  borderStyle:Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
+  keyboardType:Titanium.UI.KEYBOARD_DECIMAL_PAD,
+  returnKeyType:Titanium.UI.RETURNKEY_DEFAULT
+});
+win.add(parField);
+
+var parLabel = Ti.UI.createLabel({
+  text:'Par',
+  height:35,
+  top:130,
+  left:20,
+  font:{fontWeight:'bold'},
+  color:'#444'
+});
+win.add(parLabel);
+
+var orderField = Ti.UI.createTextField({
+  hintText: product_order !=null?product_order:'Order',
+  height:35,
+  width: 70,
+  top:130,
+  right:20,
+  borderStyle:Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
+  keyboardType:Titanium.UI.KEYBOARD_DECIMAL_PAD,
+  returnKeyType:Titanium.UI.RETURNKEY_DEFAULT
+});
+win.add(orderField);
+
+var orderLabel = Ti.UI.createLabel({
+  text:'Order',
+  height:35,
+  top:130,
+  right:110,
+  font:{fontWeight:'bold'},
+  color:'#444'
+});
+win.add(orderLabel);
+
+
+/*
+var unitField = Ti.UI.createButton({
+  title:product_unit,
+  height:35,
+  width: 100,
+  top:60,
+  right:20
+});
+win.add(unitField);
+*/
+var qtyLabel = Ti.UI.createLabel({
+  text:'Qty',
+  height:35,
+  top:70,
+  left:20,
+  font:{fontSize:18,fontWeight:'bold'},
+  color:'#fff'
+});
+win.add(qtyLabel);
+
+var unitLabel = Ti.UI.createLabel({
+	text:product_unit,
+	height:35,
+	top:70,
+	left:180,
+	font:{fontSize:18,fontWeight:'bold'},
+	color:'#fff'
+});
+win.add(unitLabel);
+
+	
+	
+var unitTypeLabel = Ti.UI.createLabel({
+	text:"Select Unit Type -",
+	height:35,
+	top:30,
+	left:60,
+	font:{fontSize:14,fontWeight:'bold'},
+	color:'black'
+});
+win.add(unitTypeLabel);
+	
+
+  var unitType = Titanium.UI.createButton({            
+      left:180,
+      height:33,
+	  width:80,
+	  borderRadius : 10,
+	  color:'#FFFFFF',
+	  backgroundGradient : {
+		type : 'linear',
+		colors : ['#698aaa', '#1C4E7E', '#173f6b'],
+		startPoint : {
+			x : 0,
+			y : 0
+			},
+		endPoint : {
+			x : 0,
+			y : 40
+			},
+		backFillStart : false
+	  },
+	  borderWidth : 1,
+	  borderColor : '#112f55',
+        top:30,
+        title:"Purchase",                           
+        //style:Titanium.UI.iPhone.SystemButtonStyle.BORDERED                                    
+   });
+ 
+ win.add(unitType);
+ var clickedT=1; 
+ 
+ unitType.addEventListener('click', function(e) {	
+ 	if(clickedT==1)
+ 	{
+ 		clickedT=2;
+ 		unitType.title='Inventory';
+ 	}else if(clickedT==2){
+ 		clickedT=3;
+ 		unitType.title='Recipe';
+ 	}
+ 	else{
+ 		clickedT=1;
+ 	    unitType.title='Purchase';
+ 	    } 	 	
+ });
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  /*
+qtyField.addEventListener('change', function(e) {
+		if(e.value && (parField.value || parField.hintText !="Par")) {
+			var calc;
+			if (!parField.value && parField.hintText !="Par") {
+				calc = parField.hintText - e.value;
+			} else {
+				calc = parField.value - e.value;
+			}
+			orderField.hintText = (calc <=0) ? 0:calc;
+			Titanium.API.info("calc: "+calc);
+		}
+	});
+	*/
+	
+	
+	/*
+	parField.addEventListener('change', function(e) {
+		if(e.value && (qtyField.value || qtyField.hintText !="Qty")) {
+			//var calc = e.value - parField.value;
+			var calc;
+			if (!qtyField.value && qtyField.hintText !="Qty") {
+				calc = e.value - qtyField.hintText;
+			} else {
+				calc = e.value - qtyField.value;
+			}
+			orderField.hintText = (calc <=0) ? 0:calc;
+			Titanium.API.info("calc: "+calc);
+		}
+	});
+	*/
+
+var invBtn =  Titanium.UI.createButton({
+	title:'Save',
+	left:10,
+	bottom:0,
+	height:33,
+	width:60,
+	color:'#FFFFFF',
+	borderRadius : 10,
+	backgroundGradient : {
+		type : 'linear',
+		colors : ['#698aaa', '#1C4E7E', '#173f6b'],
+		startPoint : {
+			x : 0,
+			y : 0
+			},
+		endPoint : {
+			x : 0,
+			y : 40
+			},
+		backFillStart : false
+	},
+	borderWidth : 1,
+	borderColor : '#112f55'
+	//style:Titanium.UI.iPhone.SystemButtonStyle.BORDERED
+});
+
+var nxtBtn =  Titanium.UI.createButton({
+	title:'Skip',
+	style:Titanium.UI.iPhone.SystemButtonStyle.BORDERED
+});
+
+var cancelBtn =  Titanium.UI.createButton({
+	title:'Cancel',
+	right:10,
+	bottom:0,
+	height:33,
+	width:60,
+	borderRadius : 10,
+	color:'#FFFFFF',
+	backgroundGradient : {
+		type : 'linear',
+		colors : ['#698aaa', '#1C4E7E', '#173f6b'],
+		startPoint : {
+			x : 0,
+			y : 0
+			},
+		endPoint : {
+			x : 0,
+			y : 37
+			},
+		backFillStart : false
+	},
+	borderWidth : 1,
+	borderColor : '#112f55'
+	//style:Titanium.UI.iPhone.SystemButtonStyle.BORDERED
+});
+
+var flowLbl = Ti.UI.createLabel({
+	text: 'Auto Flow',
+	textAlign:'center',
+	font:{fontWeight:'bold',fontSize:12},
+	color:'#fff'
+});
+
+//Bidyut
+/* 
+var spacer =  Titanium.UI.createButton({
+	systemButton:Titanium.UI.iPhone.SystemButton.FLEXIBLE_SPACE
+});
+if (autoFlow == false) {
+	var toolbarr =  Titanium.UI.createView({
+	barColor: '#1C4E7E',
+	bottom:0,
+	items:[invBtn,spacer,cancelBtn]
+	});
+} else {
+	var toolbarr =  Titanium.UI.createView({
+	barColor: '#1C4E7E',
+	bottom:0,
+	items:[invBtn,spacer,flowLbl,spacer,cancelBtn]
+	});
+}
+*/
+
+
+win.add(invBtn);
+win.add(cancelBtn);
+
+//Bidyut
+//toolbarr.add(invBtn);
+//toolbarr.add(cancelBtn);
+//win.add(toolbarr);
+
+
+// cancel events
+
+//Bidyut Nath
+cancelBtn.addEventListener('click', function() {
+	//Ti.App.fireEvent('popClose');
+	Ti.UI.Android.hideSoftKeyboard();
+	win.close();	
+});
+
+win.addEventListener('swipe', enterItem);
+
+//invBtn.addEventListener('click', enterItem);
+
+//Bidyut Nath
+invBtn.addEventListener('click', function() {
+	//Ti.App.fireEvent('popClose');
+	enterItem();	
+});
+/*
+win.addEventListener("open", function(event, type) {
+    qtyField.focus();
+        
+});
+*/
+
+
+/*
+	win.addEventListener('focus', function() {
+		setTimeout(function() {
+			qtyField.focus();			
+		}, 500);
+		// Adjust the milliseconds from 500 upwards/downwards until the delay looks right
+	}); 
+*/
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+//5th
+/*	
+	Titanium.API.info('Clicked:'+e);
+	if ((e.rowData && e.row.productitem.text) || popType == 'create')
+	{
+
+     var pHeader = '';
+     var pUrl = '../inventory/add.js';
+     var pHeight = '49%';
+     var autoFlow = false;
+     var pUnit = '';
+     var pId = '';
+     var pQty = null;
+     var pPar = null;
+     var pOrder = null;
+     var pImg = '';
+     var pUid = '';
+     var pCatId = '';
+     var bgColor='#eee';
+     var bColor='#666';
+     var bWidth=1;
+     var inventory=[];
+     var invId = '';
+     var t = Titanium.UI.create2DMatrix();
+	 t = t.scale(0);
+
+	 if(flowSwitch.value == true) autoFlow = true;
+
+	 if (popType == 'edit') 
+	 {	
+	 	pHeader = e.row.productitem.text;
+	 	pUrl = '../inventory/enter.js';
+	 	pHeight = '49%';
+	 	pId = e.row.productid;
+		pUnit = e.row.unitname;
+		pQty = e.row.product_qty
+		pUid = e.row.unit_id;
+		pCatId = e.row.catid;
+		pOrder = e.row.product_order;
+		pPar = e.row.product_par;
+		invId = e.row.inv_id;
+		pImg = e.row.product_img;
+	 }
+alert("autoflow=="+autoFlow)
+	 if(autoFlow == true && popType == 'edit') {
+alert("It's in Multicount");
+	 	if(e.row.productunit) {
+	 		inventory = invComplete;
+
+	 	}else{
+	 		inventory = inv;	
+	 	}
+
+	 	pUrl = '../inventory/autoenter.js';
+	 	bgColor='transparent';
+	 	bColor=bgColor;
+	 	bWidth=0;
+	 //	var win = Titanium.UI.currentWindow;
+     // 	win.close();
+	 }
+
+	 if (popType == 'create') 
+	 {
+	 	pHeader = 'Add or Create a New Item';
+	 	pUrl = '../inventory/addcreate.js';
+	 	pHeight = '95%';
+	 }
+
+     var w = Titanium.UI.createWindow({
+     	title:"I am On"
+    	url:pUrl,
+		backgroundColor:bgColor,
+		borderWidth:bWidth,
+		borderColor:bColor,
+		top:10,
+		left:10,
+		right:10,
+		height:pHeight,
+		borderRadius:10,	
+		opacity:0.85,
+		transform:t,
+		product_name:pHeader,
+		product_id: pId,
+		product_unit: pUnit,
+		product_unit_id: pUid,
+		product_par:pPar,
+		product_order:pOrder,
+		product_qty: pQty,
+		category_id:pCatId,
+		list_index: e.index,
+		inventory: inventory,
+		location_id: location_id,
+		product_img: pImg,
+		inv_id: invId,
+		autoFlow:autoFlow
+	});
+
+	// create first transform to go beyond normal size
+	var t1 = Titanium.UI.create2DMatrix();
+	t1 = t1.scale(1.1);
+	var a = Titanium.UI.createAnimation();
+	a.transform = t1;
+	a.duration = 200;
+
+	//win.add(bg);
+
+	// when this animation completes, scale to normal size
+	a.addEventListener('complete', function()
+	{
+		//Titanium.API.info('here in complete');
+		var t2 = Titanium.UI.create2DMatrix();
+		t2 = t2.scale(1);
+		w.animate({transform:t2, duration:200});
+
+	});
+
+	w.open();
+	//}
+	*/
+}
+
+var bg = Titanium.UI.createView({
+	width: '100%',
+	height: '100%',
+	backgroundColor: '#000'
+//5th	opacity: 0.5
+});
+
+function getGrpInv() {
+	Titanium.App.fireEvent('show_indicator');
+	var xhr = Ti.Network.createHTTPClient();
+	xhr.onload = function(e) {
+		//alert("gotcha");
+		var items = JSON.parse(this.responseText);
+		var invGrp = _.groupBy(items.items, function(e) { return e.location_id });
+		var invData = _.toArray(invGrp);
+		Ti.App.Properties.setString("currInventory", JSON.stringify(invGrp));
+		Titanium.App.fireEvent('hide_indicator');
+		setData();
+	};
+	xhr.onerror = function(e) {
+
+		Ti.API.info("post error:" + e.error);
+	};
+	xhr.open('GET', global_url+"/api/v1/inventories/"+Ti.App.Properties.getString('inventory_id')+".json"+token_variable);
+	xhr.send();
+	};
+
+Ti.App.addEventListener('popClose', function (e) {
+	win.remove(bg);
+	getGrpInv();	
+});
+
+
+win.add(tvCompleted);
+
+// win.addEventListener("open", function(event, type) {
+//     setData();
+// });
+win.addEventListener("focus", function(event, type) {
+    setData();
+});
+
+create.addEventListener('click', function(e) 
+{
+	alert("implementation in process");
+	//31 popWin(e,'create');
+});
+
+function enterItem() {
+		
+	
+	//alert("productlocation_id:"+location_id);
+	
+	//alert("qty_field:"+qtyField.value);
+	
+	
+	var xhr = Titanium.Network.createHTTPClient();			
+	
+	/*
+	xhr.onload = function(e) {	
+		
+		win.close();
+		
+	};
+	*/
+	
+	xhr.onerror = function(e) {
+		Ti.API.info("post error:" + e.error);
+	
+	};
+	
+	xhr.open("PUT", global_url+'/manager/inventories/'+Ti.App.Properties.getString('inventory_id')+'.json'+token_variable);
+	
+	
+	
+	try{
+	if(product_id>0){
+		xhr.send({
+		//"inventory[user_id]":Ti.App.Properties.getString('r_id'),
+		"utf8":"✓",
+		"inventory[items_attributes][][location_id]":location_id,
+		//"inventory[items_attributes][][unit_id]":product_unit_id,
+		"inventory[items_attributes][][quantity]":qtyField.value?qtyField.value:product_quantity,
+		"inventory[items_attributes][][par]":parField.value?parField.value:product_par,
+		"inventory[items_attributes][][order]":orderField.value?orderField.value:product_order,
+		"inventory[items_attributes][][id]":inv_id,
+		"inventory[items_attributes][][product_id]":product_id,
+		"inventory[items_attributes][][_destroy]":0,
+		"inventory[items_attributes][][status]":1
+
+		});
+	} else {
+		xhr.send({
+		//"inventory[user_id]":Ti.App.Properties.getString('r_id'),
+		"utf8":"✓",
+		"inventory[items_attributes][][location_id]":1,
+		//"inventory[items_attributes][][unit_id]":1,
+		"inventory[items_attributes][][quantity]":1?qtyField.value:product_quantity,
+		"inventory[items_attributes][][par]":1?parField.value:product_par,
+		"inventory[items_attributes][][order]":1?orderField.value:product_order,
+		"inventory[items_attributes][][id]":1,
+		"inventory[items_attributes][][name]":'1',
+		"inventory[items_attributes][][_destroy]":0,
+		"inventory[items_attributes][][status]":1
+	});
+	}
+	}catch(e){}
+}

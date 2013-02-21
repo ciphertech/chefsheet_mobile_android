@@ -1,0 +1,31 @@
+Logfile initialized
+[INFO] logfile = /home/Bidyut/Desktop/god_backups/try_catch_backup/23_Jan_Chefsheet_mobile_android/build.log
+[DEBUG] /home/Bidyut/.titanium/mobilesdk/linux/3.0.0.GA/android/builder.py simulator Chefsheet /home/Bidyut/ /home/Bidyut/Desktop/god_backups/try_catch_backup/23_Jan_Chefsheet_mobile_android com.chefsheet.mobile 4 HVGA 
+[INFO] Building Chefsheet for Android ... one moment
+[INFO] Titanium SDK version: 3.0.0 (12/12/12 18:49 a5894b3)
+[DEBUG] Waiting for device to be ready ...
+[TRACE] adb devices returned 1 devices/emulators
+[DEBUG] Device connected... (waited 0 seconds)
+[DEBUG] waited 0.003906 seconds on emulator to get ready
+[DEBUG] com.chefsheet.mobile installed? True
+[INFO] Fastdev server running, deploying in Fastdev mode
+[INFO] Copying CommonJS modules...
+[INFO] Copying project resources..
+[INFO] Tiapp.xml unchanged, skipping class generation
+[DEBUG] Processing Android resource drawables
+[DEBUG] found drawable-long-land-ldpi splash screen at /home/Bidyut/Desktop/god_backups/try_catch_backup/23_Jan_Chefsheet_mobile_android/Resources/android/images/res-long-land-ldpi/default.png
+[DEBUG] found drawable-notlong-land-mdpi splash screen at /home/Bidyut/Desktop/god_backups/try_catch_backup/23_Jan_Chefsheet_mobile_android/Resources/android/images/res-notlong-land-mdpi/default.png
+[DEBUG] found drawable-long-port-hdpi splash screen at /home/Bidyut/Desktop/god_backups/try_catch_backup/23_Jan_Chefsheet_mobile_android/Resources/android/images/res-long-port-hdpi/default.png
+[DEBUG] found drawable-notlong-land-hdpi splash screen at /home/Bidyut/Desktop/god_backups/try_catch_backup/23_Jan_Chefsheet_mobile_android/Resources/android/images/res-notlong-land-hdpi/default.png
+[DEBUG] found drawable-notlong-land-ldpi splash screen at /home/Bidyut/Desktop/god_backups/try_catch_backup/23_Jan_Chefsheet_mobile_android/Resources/android/images/res-notlong-land-ldpi/default.png
+[DEBUG] found drawable-notlong-port-ldpi splash screen at /home/Bidyut/Desktop/god_backups/try_catch_backup/23_Jan_Chefsheet_mobile_android/Resources/android/images/res-notlong-port-ldpi/default.png
+[DEBUG] found drawable-notlong-port-mdpi splash screen at /home/Bidyut/Desktop/god_backups/try_catch_backup/23_Jan_Chefsheet_mobile_android/Resources/android/images/res-notlong-port-mdpi/default.png
+[DEBUG] found drawable-long-land-hdpi splash screen at /home/Bidyut/Desktop/god_backups/try_catch_backup/23_Jan_Chefsheet_mobile_android/Resources/android/images/res-long-land-hdpi/default.png
+[DEBUG] found drawable-notlong-port-hdpi splash screen at /home/Bidyut/Desktop/god_backups/try_catch_backup/23_Jan_Chefsheet_mobile_android/Resources/android/images/res-notlong-port-hdpi/default.png
+[DEBUG] found drawable-long-port-ldpi splash screen at /home/Bidyut/Desktop/god_backups/try_catch_backup/23_Jan_Chefsheet_mobile_android/Resources/android/images/res-long-port-ldpi/default.png
+[INFO] Re-launching application ... Chefsheet
+[INFO] Launching application ... Chefsheet
+[TRACE] Launch output: Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=com.chefsheet.mobile/.ChefsheetActivity }
+
+[INFO] Relaunched Chefsheet ... Application should be running.
+[INFO] Android Emulator has exited

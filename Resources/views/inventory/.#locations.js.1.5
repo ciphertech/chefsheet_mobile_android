@@ -1,0 +1,414 @@
+
+Ti.include('../shared/default.js');
+//alert("sorry name of room is not appearing will be sorted shortly.");
+var refresh = Titanium.UI.createButton({
+	systemButton:Titanium.UI.iPhone.SystemButton.REFRESH
+});
+
+var restaurant_name = '';
+var inventory_name = '';
+
+var data = [];
+
+bgFrame(0,0,0,0);
+
+
+var idLabel = Ti.UI.createLabel({
+  text:Ti.App.Properties.getString('restaurant_name'),
+  top:68,
+  left:20,
+  height:'auto',
+  color:'#357'
+});
+
+if (os_And) {
+	//if screen is HVGA
+	if ((width == '320') && (height == '480')) {
+		var idLabel = Ti.UI.createLabel({
+			text : Ti.App.Properties.getString('restaurant_name'),
+			top : 40,
+			left : 20,
+			height : 'auto',
+			color : '#357'
+		});
+	}
+	//if screen is QVGA
+	if ((width == 240) && (height == 320)) {
+		var idLabel = Ti.UI.createLabel({
+			text : Ti.App.Properties.getString('restaurant_name'),
+			top : 30,
+			left : 20,
+			height : 'auto',
+			color : '#357'
+		});
+	}
+
+}
+
+win.add(idLabel);
+
+var idLabel2 = Ti.UI.createLabel({
+  text:Ti.App.Properties.getString('inventory_name'),
+  font:{fontSize:16,fontWeight:'bold'},
+  top:90,
+  left:20,
+  height:'auto',
+  width:'auto',
+  color:'#357'
+});
+
+if (os_And) {
+
+	//if screen is HVGA
+	if ((width == '320') && (height == '480')) {
+		var idLabel2 = Ti.UI.createLabel({
+			text : Ti.App.Properties.getString('inventory_name'),
+			font : {
+				fontSize : 16,
+				fontWeight : 'bold'
+			},
+			top : 60,
+			left : 20,
+			height : 'auto',
+			width : 'auto',
+			color : '#357'
+		});
+	}
+	//if screen is QVGA
+	if ((width == 240) && (height == 320)) {
+			var idLabel2 = Ti.UI.createLabel({
+			text : Ti.App.Properties.getString('inventory_name'),
+			font : {
+				fontSize : 16,
+				fontWeight : 'bold'
+			},
+			top : 50,
+			left : 20,
+			height : 'auto',
+			width : 'auto',
+			color : '#357'
+		});
+	}
+
+}
+
+win.add(idLabel2);
+
+function setData() {
+	if(Ti.App.Properties.getString('inventory_id')>0) {
+	var user_id = Ti.App.Properties.getString('user_id');
+	var xhr = Ti.Network.createHTTPClient();
+  	xhr.onload = function(e) {
+		var items = JSON.parse(this.responseText);
+		
+		
+		//alert(this.responseText);
+		
+		
+		//alert(JSON.parse(this.responseText));
+		//Ti.API.info("location data length:" + items.items.length);
+		var invGrp = _.groupBy(items.items, function(e) { return e.location_id });
+
+		var invData = _.toArray(invGrp);
+		
+		Ti.App.Properties.setString("currInventory", JSON.stringify(invGrp));
+		Ti.API.info("location data groups - invData length: "+invData.length);
+	    data = [];
+		tableview.data = data;
+		
+		for(i=0;i<invData.length;i++) {
+			//Ti.API.info("location qty's: "+_.pluck(_.toArray(invData[i]),'quantity'));
+			var locDone = !_.any(_.pluck(_.toArray(invData[i]),'quantity'), _.identity(_.isNull));
+			//Ti.API.info("location "+invData[i][0].location.name+" finished is: "+locDone);
+			var locTitle = 'null';
+			if(invData[i][0].location){
+				locTitle = (invData[i][0].location.name != '') ? invData[i][0].location.name:'not set';	
+			}
+			data[i] = Ti.UI.createTableViewRow({
+				title:locTitle,
+				height:40,
+				right:200,
+				location_id:invData[i][0].location_id
+				//error in android  	leftImage: locDone ? '../../images/19-check.png':null
+			});			
+			
+			var inv_sum = Ti.UI.createLabel({
+				text: invData[i].length,
+				textAlign:'right',
+				font:{fontWeight:'normal',fontSize:12},
+				color:'#000000',
+				right:10
+	        });
+	        
+            //Bidyut Nath
+            // Added to display room name
+			var room_name = Ti.UI.createLabel({
+				text : locTitle,
+				textAlign : 'right',
+				font : {
+						fontWeight : 'normal',
+						fontSize : 16
+				},
+				color : '#173f6b',
+				left : 10
+			}); 
+
+	        	        
+	        
+	        
+	        data[i].add(inv_sum); 
+	        data[i].add(room_name); //Bidyut Nath 	        
+	        //data[i].title = locTitle;
+	        data[i].location_id = invData[i][0].location_id
+	    }
+		tableview.data = data;
+	
+  	};
+	xhr.onerror = function(e) {
+				Ti.API.info("post error:" + e.error);
+				alert("Error with in loading");
+	};
+  	xhr.open('GET', global_url+"/api/v1/inventories/"+Ti.App.Properties.getString('inventory_id')+".json"+token_variable);
+  	xhr.send();
+  	
+  	} else {
+  		alert("we are in else part");
+  		Ti.App.fireEvent('signedIn');
+  	}	
+};
+setData();
+
+if(!os_And){
+var tvBg = Ti.UI.createImageView({
+	bottom:68,
+	left:19,
+	right:19,
+	height:220,
+	borderColor:'#cde',
+	borderRadius:8,
+	backgroundColor:'transparent',
+	backgroundImage:'../../images/tableBG.png'
+});
+win.add(tvBg);
+}
+
+var tableview = Titanium.UI.createTableView({
+	bottom:70,
+	left:20,
+	right:20,
+	height:218,
+	borderWidth:1,
+	borderRadius:8,
+	backgroundColor:'transparent',
+	borderColor:'#999',
+	separatorColor:'#aaa'
+});
+if(os_And){
+	//if screen is HVGA
+	if ((width == '320') && (height == '480')) {
+
+		var tvBg = Ti.UI.createImageView({
+			bottom : 17,
+			left : 20,
+			right : 20,
+			height : 350,
+			borderColor : '#B0E4F4',
+			borderRadius : 8,
+			backgroundColor : 'transparent',
+			backgroundImage : '../../images/tableBG_blue.png'
+		});
+		win.add(tvBg);
+
+		
+		var tableview = Titanium.UI.createTableView({
+			bottom : 17,
+			left : 20,
+			right : 20,
+			height : 350,
+			borderWidth : 1,
+			borderRadius : 8,
+			backgroundColor : 'transparent',
+			borderColor : '#999',
+			separatorColor : '#aaa'
+		});
+	}
+	//if screen is WQVGA400
+	if ((width == 240) && (height == 400)) {
+		var tableview = Titanium.UI.createTableView({
+			bottom : 17,
+			left : 20,
+			right : 20,
+			height : 240,
+			borderWidth : 1,
+			borderRadius : 8,
+			backgroundColor : 'transparent',
+			borderColor : '#999',
+			separatorColor : '#aaa'
+		});
+	}
+	
+    //if screen is WQVGA432
+	if ((width == 240) && (height == 432)) {
+		var tableview = Titanium.UI.createTableView({
+			bottom : 17,
+			left : 20,
+			right : 20,
+			height : 260,
+			borderWidth : 1,
+			borderRadius : 8,
+			backgroundColor : 'transparent',
+			borderColor : '#999',
+			separatorColor : '#aaa'
+		});
+	}
+	
+	//if screen is QVGA
+	if ((width == 240) && (height == 320)) {
+		var tvBg = Ti.UI.createImageView({
+			bottom : 17,
+			left : 20,
+			right : 20,
+			height : 190,
+			borderColor : '#B0E4F4',
+			borderRadius : 8,
+			backgroundColor : 'transparent',
+			backgroundImage : '../../images/tableBG_blue.png'
+		});
+		win.add(tvBg); 
+
+		var tableview = Titanium.UI.createTableView({
+			bottom : 17,
+			left : 20,
+			right : 20,
+			height : 190,
+			borderWidth : 1,
+			borderRadius : 8,
+			backgroundColor : 'transparent',
+			borderColor : '#999',
+			separatorColor : '#aaa'
+		});
+	}
+}
+
+// create table view event listener
+tableview.addEventListener('click', function(e) {
+	var index = e.index;
+	var section = e.section;
+
+	setTimeout(function()
+	{
+		// reset checks
+		for (var i=0;i<section.rows.length;i++)
+		{
+			//section.rows[i].hasCheck = false;
+			section.rows[i].hasDetail = false;
+			section.rows[i].color = '#000';
+		}
+		// set current check
+		//section.rows[index].hasCheck = true;
+		section.rows[index].hasDetail = true;
+		section.rows[index].color = '#1C4E7E';
+		
+	},250);
+	
+	var w = Ti.UI.createWindow({
+	    url:'../inventory/inventory.js',
+	    barColor: '#1C4E7E',
+	    title:" Inventory",
+	    navBarHidden:false,
+	    modal:false,
+		location_id:e.row.location_id
+  	});
+  	var locale = Ti.UI.createLabel({
+		text:e.row.title,
+		font:{fontSize:12,fontWeight:'normal'},
+		color:'#fff'
+	});
+	w.rightNavButton = locale;
+	w.backButtonTitle = 'Locations';
+	backtitle = true;	
+	w.open();		
+	//Ti.UI.currentTab.open(w,{animated:true,navBarHidden:false});
+});
+
+// add table view to the window
+win.add(tableview);
+
+refresh.addEventListener('click', function()
+{
+	Titanium.App.fireEvent('show_indicator');
+	tableview.setData([]);
+	setTimeout(function()
+	{
+		//alert("setting data");
+		setData();
+	},1000);
+});
+
+// force refresh
+Ti.App.addEventListener('refresh', function (e) {
+	if(e.tab == 'inventory' || e.tab == 'locations') {
+		setData();
+	}
+});
+
+
+if (!os_And) {
+	win.rightNavButton = refresh;
+	win.leftNavButton =menuButton;
+} else {
+	
+	//if screen is HVGA
+	if ((width == '320') && (height == '480')) {
+		win.add(menuButton);
+		refresh.right = 0;
+		refresh.image = '../../images/refresh.png',
+		refresh.top = 10;
+		refresh.backgroundColor='transparent',
+		//not working 23rd B&Y tv.top = 60;
+		win.add(refresh);
+	}
+
+	//if screen is WQVGA400
+	if ((width == 240) && (height == 400)) {
+		win.add(menuButton);
+		refresh.right = 0;
+		refresh.image = '../../images/refresh.png',
+		refresh.top = 0;
+		refresh.backgroundColor='transparent',
+		win.add(refresh);
+	}
+	
+	//if screen is WQVGA432
+	if ((width == 240) && (height == 432)) {
+		win.add(menuButton);
+		refresh.right = 0;
+		refresh.image = '../../images/refresh.png',
+		refresh.top = 0;
+		refresh.backgroundColor='transparent',
+		win.add(refresh);
+	}
+	
+	//if screen is QVGA
+	if ((width == 240) && (height == 320)) {
+		win.add(menuButton);
+		refresh.right = 0;
+		refresh.image = '../../images/refresh_qvga.png',
+		refresh.top = 2;
+		refresh.backgroundColor='transparent',		
+		win.add(refresh);
+	}
+}
+
+win.addEventListener("focus", function(event, type) {
+	setData();
+	if ((Ti.App.Properties.getString('restaurant_name') != restaurant_name) || (Ti.App.Properties.getString('inventory_name') != inventory_name)) {
+	
+		restaurant_name = Ti.App.Properties.getString('restaurant_name');
+		inventory_name = Ti.App.Properties.getString('inventory_name');
+	}
+    idLabel.text = Ti.App.Properties.getString('restaurant_name')
+    idLabel2.text = Ti.App.Properties.getString('inventory_name');
+});
+
+
