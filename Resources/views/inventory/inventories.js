@@ -291,15 +291,13 @@ var locationWin = Ti.UI.createWindow({
 
 //bidyut nath
 //modified as duplicate dialog was getting displayed even after clicking on label.
-try {
+try{
 	tableview.addEventListener('click', function(e) {
-		try {
 			loadingIndicator.show();
-
 			//hide method call
 			setTimeout(function() {
 				loadingIndicator.hide();
-			}, 500);
+			}, 250);
 
 			if (e.source.toString() == '[object Button]') {
 				dialog.title = 'Do you want to duplicate the "' + e.source.inv_title + '" Inventory?';
@@ -328,13 +326,11 @@ try {
 				}, 250);
 				Ti.App.Properties.setString('inventory_id', e.row.inventory_id);
 				Ti.App.Properties.setString('inventory_name', e.row.inv_title);
-			}
-		} catch(e) {
-		}
+			}		
 
 	});
-} catch(e) {
-}
+	}catch(e){}
+
 
 win.add(tableview);
 

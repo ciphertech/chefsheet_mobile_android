@@ -149,7 +149,7 @@ function setData() {
 						textAlign : 'right',
 						font : {
 							fontWeight : 'normal',
-							fontSize : 16
+							fontSize : heightt * 0.03
 						},
 						color : '#173f6b',
 						left : 10
@@ -210,7 +210,7 @@ try {
 			//hide method call
 			setTimeout(function() {
 				loadingIndicator.hide();
-			}, 500);
+			}, 100);
 		} catch(e) {
 		}
 
@@ -239,7 +239,7 @@ try {
 		var locale = Ti.UI.createLabel({
 			text : e.row.title,
 			font : {
-				fontSize : 12,
+				fontSize : heightt * 0.03,
 				fontWeight : 'normal'
 			},
 			color : '#fff'

@@ -7,15 +7,8 @@ var buttonSystem = true;
 var widthh = Titanium.Platform.displayCaps.platformWidth;
 var heightt = Titanium.Platform.displayCaps.platformHeight;
 
-/*
- //Bidyut Nath
- //added code for preventing landscape mode.
- Titanium.UI.orientation = Titanium.UI.PORTRAIT;
- */
 
 Ti.include('views/shared/default.js');
-
-// Titanium.UI.setBackgroundColor('#000000');
 
 Ti.App.Properties.setString('inventory_id', null);
 
@@ -138,8 +131,6 @@ var tabGroup = Titanium.UI.createTabGroup({
 });
 
 var restaurantWin = Ti.UI.createWindow({
-	//backgroundColor:'#BBBBC0',
-
 	tabBarHidden : true,
 	url : 'views/restaurants/index.js',
 
@@ -183,8 +174,7 @@ var reportsTab = Ti.UI.createTab({
 	window : reportsWin
 });
 
-var signinWin = Ti.UI.createWindow({
-	//backgroundColor:'#BBBBC0',
+var signinWin = Ti.UI.createWindow({	
 	barColor : '#1C4E7E',
 	title : 'Sign In',
 	leftnav : true,
@@ -265,17 +255,7 @@ title : 'Settings',
 	icon : 'images/17-bar-chart.png',
 	window : settingsWin
 });
-//temporary by bidyut
 
-/*var winData = [
-{title:'Restaurants',icon:'images/nav-icons/48-fork-and-knife.png', tab:0,wView:'restaurantWin'},
-{title:'Inventories',icon:'images/nav-icons/83-calendar.png', tab:1,wView:'inventoriesWin'},
-{title:'Count Inventory',icon:'images/nav-icons/179-notepad.png', tab:2,wView:'inventoryWin'},
-{title:'Inventory Reports',icon:'images/nav-icons/17-bar-chart.png', tab:3,wView:'reportsWin'},
-//{title:'Product Search',icon:'images/nav-icons/14-tag.png', tab:4,wView:'pricingWin'},
-{title:'Settings',icon:'images/nav-icons/20-gear2.png', tab:4,wView:'settingsWin'},
-{title:'Sign Out',icon:'images/nav-icons/56-cloud.png', tab:5,wView:'signinWin'}
-];*/
 // make nav list
 var single = true;
 var adj = 1
@@ -428,7 +408,6 @@ tabGroup.addEventListener('focus', function(e) {
 
 try {
 	mainWin.addEventListener('open', function() {
-
 		signinWin.open();
 	});
 } catch(e) {
@@ -464,10 +443,7 @@ function setMenu() {
 	xhr.send();
 };
 
-setTimeout(function() {
-	//bidyut nath
-	//not for android
-	//mainWin.open({ transition:Titanium.UI.iPhone.AnimationStyle.CURL_DOWN });
+setTimeout(function() {	
 	try {
 		myactivityIndicator.hide();
 	} catch(e) {
@@ -500,7 +476,6 @@ var tg1Title = Ti.UI.createImageView({
 });
 signinWin.add(tg1Title);
 mainWin.add(initView);
-// mainWin.add(tg1Title);
 
 var showMenu = false;
 menuBtn.addEventListener('click', function(e) {
@@ -638,6 +613,12 @@ try {
 			e.source.width = widthh * 0.75;
 
 		}, 800);
+		
+		//hide method call
+		setTimeout(function() {
+			loadingIndicator.hide();
+		}, 250);
+		
 
 	});
 } catch(e) {
@@ -645,23 +626,23 @@ try {
 
 try {
 	inventoriesButton.addEventListener('click', function(e) {
-		loadingIndicator.show();
+		//loadingIndicator.show();
 		e.source.width = widthh * 0.85;
 		if (Ti.App.Properties.getString('inventFirstTime') == 'true') {
 			restaurantWin.open();
 		} else {
 			try {
-				loadingIndicator.show();
+				//loadingIndicator.show();
 				inventoriesWin.open();
 
 			} catch(e) {
-				loadingIndicator.show();
+				//loadingIndicator.show();
 				restaurantWin.open();
 
 			}
 		}
 		setTimeout(function() {
-			loadingIndicator.hide();
+			//loadingIndicator.hide();
 			e.source.width = widthh * 0.75;
 
 		}, 800);
@@ -672,7 +653,7 @@ try {
 
 try {
 	countInventoriesButton.addEventListener('click', function(e) {
-		loadingIndicator.show();
+		//loadingIndicator.show();
 		e.source.width = widthh * 0.85;
 		if (Ti.App.Properties.getString('countFirstTime') == 'true') {
 			restaurantWin.open();
@@ -689,7 +670,7 @@ try {
 			}
 		}
 		setTimeout(function() {
-			loadingIndicator.hide();
+			//loadingIndicator.hide();
 			e.source.width = widthh * 0.75;
 
 		}, 800);

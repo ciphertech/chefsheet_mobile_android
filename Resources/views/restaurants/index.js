@@ -183,7 +183,7 @@ try {
 			//hide method call
 			setTimeout(function() {
 				loadingIndicator.hide();
-			}, 500);
+			}, 100);
 
 			var index = e.index;
 			var section = e.section;

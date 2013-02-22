@@ -8,7 +8,7 @@ var runonce=true;
 var runonce2=true;
  var runat=-10;
  var scroll_once=true;
- var clickedT=1;
+
 var location_id = win.location_id;
 var autoFlow = win.autoFlow;
 var completed = false;
@@ -386,7 +386,11 @@ left.addEventListener('click', function(e)
 	if(list_index == 0){
 		return;
 	}
+	
 	enterItem2();
+	clickedT=1;
+	unitType.title='Purchase';
+		run_when_scroll=-777;
 	rightNum.text=(t-list_index);
 	if(rightNum.text=='0'){
 		rightNum.text='Last';
@@ -454,7 +458,12 @@ right.addEventListener('click', function(e)
 	if(list_index == inventory.length-1){
 		return;
 	}
+	
+	
 	enterItem2();
+	clickedT=1;
+	unitType.title='Purchase';
+	run_when_scroll=-777;
 	rightNum.text=((t-1)-(list_index+1));
 	if(rightNum.text=='0'){
 		rightNum.text='Last';
@@ -574,22 +583,22 @@ win.add(unitType);
 
  
 unitType.addEventListener('click', function(e) {
-	if(run_when_scroll==list_index){
-		return
+	if(run_when_scroll==list_index){		
+		return;
 	}
 enterItem2();
 	
 	e.source.height=heightt * 0.055;
 	e.source.width=widthh * 0.4;
-	
-		
+
 if (clickedT == 1) {
-if (inventory_qty1[list_index] != null) {
+	
+if (inventory[list_index].inventory_unit_id != null) {
 					qtyField.hintText = inventory_qty1[list_index]+"";					
 					unitLabel.text = inventory_unit_id[list_index]+"";
 					unitType.title = "Inventory";
 			clickedT = 2;
-		}else if(recipe_unit_qty != null) {
+		}else if( inventory[list_index].recipe_unit_id != null) {
 					qtyField.hintText = recipe_qty1[list_index]+"";
 					unitLabel.text = recipe_unit_id[list_index]+"";
 					unitType.title = "Recipe";
@@ -603,18 +612,20 @@ if (inventory_qty1[list_index] != null) {
 		}
 			
 		} else if (clickedT == 2) {
-			if (recipe_unit_qty != null) {
+			if (inventory[list_index].recipe_unit_id != null) {
 					qtyField.hintText = recipe_qty1[list_index]+"";
 					unitLabel.text = recipe_unit_id[list_index]+"";
 					unitType.title = "Recipe";
 			clickedT = 3;
 			}else{
+				clickedT = 1;
 			qtyField.hintText = quantity1[list_index]+"";
 				unitLabel.text = unit[list_index]+"";
 				unitType.title = "Purchase";
 		}
 			
 		} else {
+			
 			clickedT = 1;
 			try {
 				qtyField.hintText = quantity1[list_index]+"";
@@ -624,6 +635,7 @@ if (inventory_qty1[list_index] != null) {
 			} catch(e) {
 
 			}
+			//alert("value of clickedT="+clickedT);
 
 		}
 		
@@ -1195,9 +1207,12 @@ if(relation_between_purchase_inventory_recipe)
 inventory[list_index].quantity=qtyField.value;		
 inventory[list_index].inventory_unit_qty=inventory_Count;
 inventory[list_index].recipe_unit_qty=recipe_Count;
+inventory_qty1[list_index]=inventory_Count;
+recipe_qty1[list_index]=recipe_Count;
 quantity1[list_index]=qtyField.value;
 par1[list_index]=parField.value;
 order1[list_index]=orderField.value;
+
 //end of logic
 					xhr.send({
 						//"inventory[user_id]":Ti.App.Properties.getString('r_id'),
@@ -1257,12 +1272,15 @@ if(relation_between_purchase_inventory_recipe)
 }
 }catch(ex){}		
 
+
 inventory[list_index].quantity=qtyField.value;		
 inventory[list_index].inventory_unit_qty=inventory_Count;
 inventory[list_index].recipe_unit_qty=recipe_Count;
+inventory_qty1[list_index]=inventory_Count;
+recipe_qty1[list_index]=recipe_Count;
 quantity1[list_index]=qtyField.value;
 par1[list_index]=parField.value;
-order1[list_index]=orderField.value;		
+order1[list_index]=orderField.value;	
 //end of logic
 					xhr.send({
 						//"inventory[user_id]":Ti.App.Properties.getString('r_id'),
@@ -1316,7 +1334,9 @@ order1[list_index]=orderField.value;
 inventory[list_index].quantity=purchase_Count;		
 inventory[list_index].inventory_unit_qty=qtyField.value;
 inventory[list_index].recipe_unit_qty=recipe_Count;
-quantity1[list_index]=qtyField.value;
+inventory_qty1[list_index]=qtyField.value;
+recipe_qty1[list_index]=recipe_Count;
+quantity1[list_index]=purchase_Count;
 par1[list_index]=parField.value;
 order1[list_index]=orderField.value;
 
@@ -1372,7 +1392,9 @@ order1[list_index]=orderField.value;
 inventory[list_index].quantity=purchase_Count;		
 inventory[list_index].inventory_unit_qty=qtyField.value;
 inventory[list_index].recipe_unit_qty=recipe_Count;
-quantity1[list_index]=qtyField.value;
+inventory_qty1[list_index]=qtyField.value;
+recipe_qty1[list_index]=recipe_Count;
+quantity1[list_index]=purchase_Count;
 par1[list_index]=parField.value;
 order1[list_index]=orderField.value;
 
@@ -1435,7 +1457,9 @@ if(relation_between_purchase_inventory_recipe)
 inventory[list_index].quantity=purchase_Count;		
 inventory[list_index].inventory_unit_qty=inventory_Count;
 inventory[list_index].recipe_unit_qty=qtyField.value;
-quantity1[list_index]=qtyField.value;
+inventory_qty1[list_index]=inventory_Count;
+recipe_qty1[list_index]=qtyField.value;
+quantity1[list_index]=purchase_Count;		
 par1[list_index]=parField.value;
 order1[list_index]=orderField.value;
 //end of logic
@@ -1494,7 +1518,9 @@ if(relation_between_purchase_inventory_recipe)
 			inventory[list_index].quantity=purchase_Count;		
 inventory[list_index].inventory_unit_qty=inventory_Count;
 inventory[list_index].recipe_unit_qty=qtyField.value;
-quantity1[list_index]=qtyField.value;
+inventory_qty1[list_index]=inventory_Count;
+recipe_qty1[list_index]=qtyField.value;
+quantity1[list_index]=purchase_Count;		
 par1[list_index]=parField.value;
 order1[list_index]=orderField.value;	
 //end of logic

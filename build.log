@@ -6,7 +6,7 @@ Logfile initialized
 [DEBUG] Waiting for device to be ready ...
 [TRACE] adb devices returned 1 devices/emulators
 [DEBUG] Device connected... (waited 0 seconds)
-[DEBUG] waited 0.003906 seconds on emulator to get ready
+[DEBUG] waited 0.003668 seconds on emulator to get ready
 [DEBUG] com.chefsheet.mobile installed? True
 [INFO] Fastdev server running, deploying in Fastdev mode
 [INFO] Copying CommonJS modules...
@@ -27,5 +27,3 @@ Logfile initialized
 [INFO] Launching application ... Chefsheet
 [TRACE] Launch output: Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=com.chefsheet.mobile/.ChefsheetActivity }
 
-[INFO] Relaunched Chefsheet ... Application should be running.
-[INFO] Android Emulator has exited

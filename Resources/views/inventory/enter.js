@@ -238,14 +238,17 @@ try{
 		}
 		e.source.height = heightt * 0.055;
 		e.source.width = widthh * 0.4;
+		// alert("product_unit:"+product_unit);
+		// alert("inventory_unit:"+inventory_unit);
+		// alert("recipe_unit:"+recipe_unit);
 
 		if (clickedT == 1) {
-			if (inventory_unit_qty != null) {
+			if (inventory_unit != null && inventory_unit !='No Unit' ) {
 				qtyField.hintText = inventory_unit_qty + "";
 				unitLabel.text = inventory_unit + "";
 				unitType.title = "Inventory";
 				clickedT = 2;
-			} else if (recipe_unit_qty != null) {
+			} else if (recipe_unit != null && recipe_unit !='No Unit') {
 				qtyField.hintText = recipe_unit_qty + "";
 				unitLabel.text = recipe_unit + "";
 				unitType.title = "Recipe";
@@ -258,12 +261,13 @@ try{
 			}
 
 		} else if (clickedT == 2) {
-			if (recipe_unit_qty != null) {
+			if (recipe_unit != null && recipe_unit !='No Unit' ) {
 				qtyField.hintText = recipe_unit_qty + "";
 				unitLabel.text = recipe_unit + "";
 				unitType.title = "Recipe";
 				clickedT = 3;
 			} else {
+				clickedT = 1;
 				qtyField.hintText = product_qty + "";
 				unitLabel.text = product_unit + "";
 				unitType.title = "Purchase";
